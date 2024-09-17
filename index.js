@@ -6,12 +6,11 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const shortnerRoute = require("./routes/shortner.route");
 require("dotenv").config();
-const nanoId = require('nanoid');
-const QRCode = require('qrcode-generator');
 
-console.log(typeof APP_URL, "from index")
+
 
 const { MONGO_URL, PORT, APP_URL } = process.env;
+console.log(typeof APP_URL, "from index")
 const port = PORT || 8081;
 const app = express();
 

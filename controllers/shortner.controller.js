@@ -1,12 +1,15 @@
 const bcrypt = require("bcryptjs");
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+// const nanoid = require('nanoid');
+const QRCode = require('qrcode-generator');
 const Url = require('../models/shortner.model');
+const User = require('../models/user.model');
 
 module.exports.checkUserFunction = async (req, res) => {
     try {
         const { email } = req.body;
-        const existingUser = await userSchema.findOne({ email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             res.status(200).json({ message: "User is present", status: true });
         } else {
@@ -21,11 +24,11 @@ module.exports.checkUserFunction = async (req, res) => {
 module.exports.SignupFunction = async (req, res, next) => {
     try {
         const { email, password, username, createdAt } = req.body;
-        const existingUser = await userSchema.findOne({ email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.json({ message: "User already exists" });
         }
-        const user = await userSchema.create({ email, password, username, createdAt });
+        const user = await User.create({ email, password, username, createdAt });
         const token = createSecretToken(user._id);
         res
             .status(201)
@@ -42,7 +45,7 @@ module.exports.LoginFunction = async (req, res, next) => {
         if (!email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
-        const user = await userSchema.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ message: 'Incorrect password or email' });
         }
@@ -62,7 +65,7 @@ module.exports.LoginFunction = async (req, res, next) => {
 module.exports.PasswordResetFunction = async (req, res) => {
     try {
         const { email } = req.body;
-        const user = await userSchema.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -98,7 +101,7 @@ module.exports.UpdatePasswordFunction = async (req, res, next) => {
     try {
         const { newPassword } = req.body;
         const { token } = req.params;
-        const user = await userSchema.findOne({ resetToken: token });
+        const user = await User.findOne({ resetToken: token });
         if (!user) {
             return res.status(404).json({ message: 'Invalid or expired reset token' });
         }
@@ -123,7 +126,7 @@ module.exports.ShortenUrlFunction = async (req, res, next) => {
         if (url) {
             return res.json({ message: 'URL already shortened', url });
         }
-        const shortUrl = nanoid.nanoid(8);
+        const shortUrl = nanoid(8);
         const qr = QRCode(0, 'L');
         qr.addData(`${APP_URL}/${shortUrl}`);
         qr.make();

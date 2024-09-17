@@ -1,4 +1,4 @@
-const { userVerification } = require("../middleware/userAuth.middleware")
+const { userVerification } = require("../middleware/user.middleware")
 const {
     SignupFunction,
     LoginFunction,
@@ -6,7 +6,8 @@ const {
     UpdatePasswordFunction,
     ShortenUrlFunction,
     GetUrlFunction,
-    GetAllUrlsFunction
+    GetAllUrlsFunction,
+    GetLastGeneratedUrlsFunction
 } = require("../controllers/shortner.controller");
 const router = require("express").Router();
 
@@ -20,7 +21,7 @@ router.post("/reset-request", PasswordResetFunction)
 
 router.post("/reset-password/:token", UpdatePasswordFunction)
 
-router.post('/shorten', ShortenUrlFunction)
+router.post('/shortenUrl', ShortenUrlFunction)
 
 router.get('/getUrl/:shortUrl', GetUrlFunction)
 
