@@ -32,6 +32,7 @@ module.exports.SignupFunction = async (req, res, next) => {
             .json({ message: "User signed in successfully", success: true, user, token });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
@@ -124,18 +125,55 @@ module.exports.ShortenUrlFunction = async (req, res, next) => {
         }
         const shortUrl = nanoid.nanoid(8);
         const qr = QRCode(0, 'L');
-        qr.addData(`http://localhost:5000/${shortUrl}`);
+        qr.addData(`${APP_URL}/${shortUrl}`);
         qr.make();
         const qrCode = qr.createImgTag();
         url = new Url({
             originalUrl,
-            shortUrl: `http://localhost:5000/${shortUrl}`,
+            shortUrl: `${APP_URL}/${shortUrl}`,
             qrCode
         });
         await url.save();
         res.json({ message: 'URL shortened successfully', url });
     } catch (error) {
         console.error("Error during generating Url:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+module.exports.GetUrlFunction = async (req, res, next) => {
+    const { shortUrl } = req.params;
+    try {
+        const url = await Url.findOne({ shortUrl: `${APP_URL}/${shortUrl}` });
+        if (url) {
+            url.accessCount += 1;
+            await url.save();
+            return res.redirect(url.originalUrl);
+        } else {
+            return res.status(404).json({ message: 'URL not found' });
+        }
+    } catch (error) {
+        console.error("Error during getting Url:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+module.exports.GetAllUrlsFunction = async (req, res, next) => {
+    try {
+        const urls = await Url.find({});
+        res.json({ message: 'Fetched URls successfully', urls });
+    } catch (error) {
+        console.error("Error during getting Url:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+module.exports.GetLastGeneratedUrlsFunction = async (req, res, next) => {
+    try {
+        const urls = await Url.find({});
+        res.json({ message: 'Fetched URls successfully', urls });
+    } catch (error) {
+        console.error("Error during getting Url:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
