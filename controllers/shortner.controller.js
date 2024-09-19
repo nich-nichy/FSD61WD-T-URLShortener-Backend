@@ -30,7 +30,6 @@ module.exports.SignupFunction = async (req, res, next) => {
             return res.json({ message: "User already exists" });
         }
         const user = await User.create({ email, password, username, createdAt });
-        console.log(user._id);
         const token = createSecretToken(user._id);
         res
             .status(201)
@@ -56,7 +55,6 @@ module.exports.LoginFunction = async (req, res, next) => {
             return res.status(401).json({ message: 'Incorrect password or email' });
         }
         const token = createSecretToken(user._id);
-        console.log(token)
         res.status(200).json({ message: "User logged in successfully", success: true, token });
     } catch (error) {
         console.error("Error during login:", error);
@@ -82,9 +80,7 @@ module.exports.PasswordResetFunction = async (req, res) => {
                 pass: process.env.EMAIL_PASS,
             }
         });
-        console.log(process.env.APP_URL);
         const resetLink = `${process.env.APP_URL}/reset-password/${resetToken}`;
-        console.log(resetLink);
         await transporter.sendMail({
             to: email,
             from: process.env.EMAIL_USER,
