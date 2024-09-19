@@ -7,11 +7,15 @@ const {
     ShortenUrlFunction,
     GetUrlFunction,
     GetAllUrlsFunction,
-    GetLastGeneratedUrlsFunction
+    GetLastGeneratedUrlsFunction,
+    RedirectPageFunction,
+    checkUserFunction
 } = require("../controllers/shortner.controller");
 const router = require("express").Router();
 
 router.post('/', userVerification)
+
+router.post("/check-user", checkUserFunction)
 
 router.post("/signup", SignupFunction);
 
@@ -28,5 +32,8 @@ router.get('/getUrl/:shortUrl', GetUrlFunction)
 router.get('/getAllUrls', GetAllUrlsFunction)
 
 router.get('/getLastGeneratedUrls', GetLastGeneratedUrlsFunction)
+
+router.post('/:slug', RedirectPageFunction)
+
 
 module.exports = router;

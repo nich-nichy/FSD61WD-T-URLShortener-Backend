@@ -7,8 +7,6 @@ const bodyParser = require("body-parser");
 const shortnerRoute = require("./routes/shortner.route");
 require("dotenv").config();
 
-
-
 const { MONGO_URL, PORT, APP_URL } = process.env;
 console.log(typeof APP_URL, "from index")
 const port = PORT || 8081;

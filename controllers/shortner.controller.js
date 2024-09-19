@@ -1,10 +1,11 @@
 const bcrypt = require("bcryptjs");
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-// const nanoid = require('nanoid');
+const { createSecretToken } = require("../utils/SecretToken");
 const QRCode = require('qrcode-generator');
 const Url = require('../models/shortner.model');
 const User = require('../models/user.model');
+const { APP_URL } = process.env;
 
 module.exports.checkUserFunction = async (req, res) => {
     try {
@@ -29,6 +30,7 @@ module.exports.SignupFunction = async (req, res, next) => {
             return res.json({ message: "User already exists" });
         }
         const user = await User.create({ email, password, username, createdAt });
+        console.log(user._id);
         const token = createSecretToken(user._id);
         res
             .status(201)
@@ -121,19 +123,18 @@ module.exports.UpdatePasswordFunction = async (req, res, next) => {
 
 module.exports.ShortenUrlFunction = async (req, res, next) => {
     try {
-        const { originalUrl } = req.body;
+        const { originalUrl, randomSlug } = req.body;
         let url = await Url.findOne({ originalUrl });
         if (url) {
             return res.json({ message: 'URL already shortened', url });
         }
-        const shortUrl = nanoid(8);
         const qr = QRCode(0, 'L');
-        qr.addData(`${APP_URL}/${shortUrl}`);
+        qr.addData(`${APP_URL}/${randomSlug}`);
         qr.make();
         const qrCode = qr.createImgTag();
         url = new Url({
             originalUrl,
-            shortUrl: `${APP_URL}/${shortUrl}`,
+            shortUrl: `${APP_URL}/${randomSlug}`,
             qrCode
         });
         await url.save();
@@ -173,10 +174,25 @@ module.exports.GetAllUrlsFunction = async (req, res, next) => {
 
 module.exports.GetLastGeneratedUrlsFunction = async (req, res, next) => {
     try {
-        const urls = await Url.find({});
-        res.json({ message: 'Fetched URls successfully', urls });
+        const urls = await Url.find().sort({ dateCreated: -1 }).limit(10);
+        res.json({ message: 'Fetched URLs successfully', urls });
     } catch (error) {
         console.error("Error during getting Url:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+module.exports.RedirectPageFunction = async (req, res) => {
+    const { slug } = req.params;
+    try {
+        const url = await Url.findOne({ shortUrl: `${APP_URL}/${slug}` });
+        if (url) {
+            res.json({ originalUrl: url.originalUrl });
+        } else {
+            res.status(404).json('No URL found');
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json('Server error');
+    }
+}
